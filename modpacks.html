@@ -1,0 +1,243 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ALOSHIQ - Modpacks</title>
+<style>
+*{box-sizing:border-box}
+body{margin:0;background:#101010;color:#eee;font-family:Arial,sans-serif}
+header{padding:20px 5%;border-bottom:1px solid #303030;display:flex;justify-content:space-between;align-items:center}
+.logo{font-size:25px;font-weight:bold;color:#fff}
+a{color:inherit;text-decoration:none}
+main{max-width:1200px;margin:30px auto;padding:0 16px}
+h1{font-size:30px}
+.controls{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin:20px 0}
+input,select,button{background:#1c1c1c;color:white;border:1px solid #383838;padding:12px;border-radius:7px;font-size:14px}
+input,select{width:100%;min-width:0}
+button{cursor:pointer;font-weight:bold}
+button:hover{background:#333}
+.tabs{display:flex;gap:10px;margin:20px 0;flex-wrap:wrap}
+.tab.active{background:#eee;color:#111}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:15px}
+.card{background:#181818;border:1px solid #303030;border-radius:10px;padding:15px;min-width:0}
+.card img{width:65px;height:65px;object-fit:cover;border-radius:9px;background:#222}
+.card h3{font-size:17px;overflow-wrap:anywhere}
+.desc{font-size:13px;color:#aaa;line-height:1.5;min-height:58px;overflow-wrap:anywhere}
+.meta{font-size:12px;color:#999;margin:10px 0}
+.download{width:100%;background:#eee;color:#111;border:0;margin-top:8px}
+.download:hover{background:#ccc}
+#status{color:#aaa;margin:18px 0}
+#more{display:block;margin:25px auto}
+.empty{color:#aaa;padding:25px 0}
+</style>
+</head>
+<body>
+<header>
+<div class="logo">ALOSHIQ</div>
+<a href="index.html">HOME</a>
+</header>
+<main>
+<h1>MODPACKS</h1>
+<p style="color:#999">Find and download Minecraft modpacks.</p>
+
+<div class="controls">
+<input id="search" placeholder="Search modpacks...">
+<select id="version"><option value="">All Minecraft versions</option></select>
+<select id="loader">
+<option value="">All loaders</option>
+<option value="fabric">Fabric</option>
+<option value="forge">Forge</option>
+<option value="neoforge">NeoForge</option>
+<option value="quilt">Quilt</option>
+</select>
+<select id="sort">
+<option value="relevance">Relevance</option>
+<option value="downloads">Most downloads</option>
+<option value="newest">Newest</option>
+<option value="updated">Recently updated</option>
+</select>
+</div>
+
+<div class="tabs">
+<button class="tab active" id="allTab">ALL MODPACKS</button>
+<button class="tab" id="ownTab">ALOSHIQ MODPACKS</button>
+</div>
+
+<div id="status">Loading modpacks...</div>
+<div class="grid" id="grid"></div>
+<button id="more" hidden>LOAD MORE</button>
+</main>
+
+<script>
+const API="https://api.modrinth.com/v2";
+const $=id=>document.getElementById(id);
+let offset=0, loading=false, ownMode=false;
+const limit=30;
+const ownModpacks=[];
+
+async function loadVersions(){
+ try{
+  const r=await fetch(API+"/tag/game_version");
+  if(!r.ok)throw Error();
+  const versions=await r.json();
+  $("version").innerHTML='<option value="">All Minecraft versions</option>';
+  versions.forEach(v=>{
+   const o=document.createElement("option");
+   o.value=v.version;
+   o.textContent=v.version+(v.version_type==="snapshot"?" (Snapshot)":"");
+   $("version").appendChild(o);
+  });
+ }catch(e){
+  $("status").textContent="Could not load Minecraft versions. Check your internet.";
+ }
+}
+
+function makeURL(){
+ const p=new URLSearchParams({
+  query:$("search").value.trim(),
+  limit:String(limit),
+  offset:String(offset),
+  index:$("sort").value
+ });
+ const facets=[["project_type:modpack"]];
+ if($("version").value)facets.push(["versions:"+ $("version").value]);
+ if($("loader").value)facets.push(["categories:"+ $("loader").value]);
+ p.set("facets",JSON.stringify(facets));
+ return API+"/search?"+p.toString();
+}
+
+function showCard(project){
+ const card=document.createElement("article");
+ card.className="card";
+ const img=document.createElement("img");
+ img.src=project.icon_url||"";
+ img.alt="";
+ img.onerror=()=>img.style.display="none";
+ card.appendChild(img);
+
+ const title=document.createElement("h3");
+ title.textContent=project.title||"Untitled modpack";
+ card.appendChild(title);
+
+ const desc=document.createElement("div");
+ desc.className="desc";
+ desc.textContent=project.description||"No description available.";
+ card.appendChild(desc);
+
+ const meta=document.createElement("div");
+ meta.className="meta";
+ meta.textContent="Downloads: "+Number(project.downloads||0).toLocaleString();
+ card.appendChild(meta);
+
+ const btn=document.createElement("button");
+ btn.className="download";
+ btn.textContent="DOWNLOAD";
+ btn.onclick=()=>downloadPack(project.id,btn);
+ card.appendChild(btn);
+ $("grid").appendChild(card);
+}
+
+async function downloadPack(id,btn){
+ const original="DOWNLOAD";
+ btn.disabled=true;
+ btn.textContent="PREPARING DOWNLOAD...";
+ try{
+  const r=await fetch(API+"/project/"+encodeURIComponent(id)+"/version");
+  if(!r.ok)throw Error("Could not retrieve versions");
+  const versions=await r.json();
+  const selected=$("version").value;
+  const loader=$("loader").value;
+
+  const compatible=versions.filter(v=>{
+   const gameOK=!selected||(v.game_versions||[]).includes(selected);
+   const loaders=v.loaders||[];
+   const loaderOK=!loader||loaders.includes(loader);
+   return gameOK&&loaderOK&&(v.files||[]).some(f=>f.url);
+  });
+
+  if(!compatible.length){
+   alert("No compatible download found. Try another Minecraft version or loader.");
+   return;
+  }
+
+  const v=compatible[0];
+  const file=(v.files||[]).find(f=>f.primary&&f.url)||(v.files||[]).find(f=>f.url);
+  if(!file)throw Error("No downloadable file found");
+
+  const a=document.createElement("a");
+  a.href=file.url;
+  a.download=file.filename||"modpack";
+  a.rel="noopener";
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  btn.textContent="DOWNLOAD STARTED";
+ }catch(e){
+  alert("Download failed. Please try again.");
+ }finally{
+  setTimeout(()=>{btn.disabled=false;btn.textContent=original},2500);
+ }
+}
+
+async function load(){
+ if(loading||ownMode)return;
+ loading=true;
+ $("more").hidden=true;
+ $("status").textContent=offset===0?"Loading modpacks...":"Loading more...";
+ if(offset===0)$("grid").innerHTML="";
+ try{
+  const r=await fetch(makeURL());
+  if(!r.ok)throw Error();
+  const data=await r.json();
+  data.hits.forEach(showCard);
+  offset+=data.hits.length;
+  $("status").textContent=offset===0?"No modpacks found.":`Showing ${offset} modpacks`;
+  $("more").hidden=data.hits.length<limit;
+ }catch(e){
+  $("status").textContent="Could not load modpacks. Check your internet and try again.";
+ }finally{loading=false}
+}
+
+function showOwn(){
+ ownMode=true;
+ $("grid").innerHTML="";
+ $("more").hidden=true;
+ $("status").textContent="";
+ if(!ownModpacks.length){
+  $("status").textContent="No ALOSHIQ modpacks published yet.";
+  return;
+ }
+ ownModpacks.forEach(showCard);
+}
+
+function showAll(){
+ ownMode=false;
+ offset=0;
+ load();
+}
+
+$("allTab").onclick=()=>{
+ $("allTab").classList.add("active");
+ $("ownTab").classList.remove("active");
+ showAll();
+};
+$("ownTab").onclick=()=>{
+ $("ownTab").classList.add("active");
+ $("allTab").classList.remove("active");
+ showOwn();
+};
+$("more").onclick=load;
+let timer;
+["search","version","loader","sort"].forEach(id=>{
+ $(id).addEventListener(id==="search"?"input":"change",()=>{
+  clearTimeout(timer);
+  timer=setTimeout(()=>{if(!ownMode){offset=0;load()}},id==="search"?400:0);
+ });
+});
+loadVersions();
+load();
+</script>
+</body>
+</html>

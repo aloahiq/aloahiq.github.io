@@ -1,0 +1,808 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#08080d">
+  <meta name="description" content="ALOSHIQ - مودات ماين كرافت وحزم الموارد والمودباكات.">
+
+  <title>ALOSHIQ | الموقع الرسمي</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+
+  <style>
+    :root {
+      --bg: #08080d;
+      --card: #12121b;
+      --purple: #8b5cf6;
+      --pink: #ec4899;
+      --text: #f5f3ff;
+      --muted: #aaa7bd;
+      --border: rgba(255,255,255,.09);
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    html {
+      scroll-behavior: smooth;
+      scroll-padding-top: 85px;
+    }
+
+    body {
+      font-family: 'Cairo', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.8;
+      overflow-x: hidden;
+    }
+
+    a {
+      text-decoration: none;
+      color: inherit;
+    }
+
+    button {
+      font-family: inherit;
+    }
+
+    .container {
+      width: min(1100px, 92%);
+      margin: auto;
+    }
+
+    /* القائمة العلوية */
+
+    header {
+      position: sticky;
+      top: 0;
+      z-index: 1000;
+      background: rgba(8,8,13,.92);
+      backdrop-filter: blur(16px);
+      border-bottom: 1px solid var(--border);
+    }
+
+    .nav {
+      min-height: 72px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 20px;
+    }
+
+    .logo {
+      font-size: 27px;
+      font-weight: 900;
+      background: linear-gradient(90deg, #a78bfa, #ec4899);
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+    }
+
+    .nav-links {
+      display: flex;
+      align-items: center;
+      gap: 23px;
+    }
+
+    .nav-links a {
+      font-size: 14px;
+      color: var(--muted);
+      transition: .2s;
+    }
+
+    .nav-links a:hover {
+      color: white;
+    }
+
+    .menu-btn {
+      display: none;
+      color: white;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 9px 12px;
+      font-size: 19px;
+      cursor: pointer;
+    }
+
+    /* الواجهة الرئيسية */
+
+    .hero {
+      min-height: 570px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: 85px 0 65px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .hero::before {
+      content: "";
+      position: absolute;
+      width: 400px;
+      height: 400px;
+      top: -120px;
+      left: -120px;
+      background: var(--purple);
+      filter: blur(160px);
+      opacity: .2;
+      pointer-events: none;
+    }
+
+    .hero::after {
+      content: "";
+      position: absolute;
+      width: 350px;
+      height: 350px;
+      right: 10%;
+      bottom: -200px;
+      background: var(--pink);
+      filter: blur(150px);
+      opacity: .15;
+      pointer-events: none;
+    }
+
+    .hero-content {
+      position: relative;
+      z-index: 1;
+      max-width: 800px;
+    }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 7px 16px;
+      border-radius: 30px;
+      border: 1px solid rgba(139,92,246,.4);
+      background: rgba(139,92,246,.12);
+      color: #c4b5fd;
+      font-size: 13px;
+      margin-bottom: 23px;
+    }
+
+    h1 {
+      font-size: clamp(40px, 7vw, 74px);
+      font-weight: 900;
+      line-height: 1.3;
+      margin-bottom: 20px;
+    }
+
+    .gradient {
+      background: linear-gradient(90deg, #a78bfa, #ec4899);
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+    }
+
+    .hero p {
+      max-width: 650px;
+      margin: 0 auto 28px;
+      color: var(--muted);
+      font-size: 16px;
+    }
+
+    .buttons {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 9px;
+      padding: 12px 21px;
+      border-radius: 11px;
+      font-size: 14px;
+      font-weight: 800;
+      border: 1px solid transparent;
+      transition: .25s;
+      cursor: pointer;
+    }
+
+    .btn:hover {
+      transform: translateY(-3px);
+    }
+
+    .primary {
+      background: linear-gradient(100deg, var(--purple), var(--pink));
+      color: white;
+    }
+
+    .secondary {
+      background: var(--card);
+      border-color: var(--border);
+      color: white;
+    }
+
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 13px;
+      max-width: 620px;
+      margin: 45px auto 0;
+    }
+
+    .stat {
+      padding: 16px 8px;
+      background: rgba(18,18,27,.8);
+      border: 1px solid var(--border);
+      border-radius: 15px;
+    }
+
+    .stat h3 {
+      font-size: 22px;
+      font-weight: 900;
+      color: #c4b5fd;
+    }
+
+    .stat p {
+      font-size: 12px;
+      margin: 0;
+    }
+
+    /* الأقسام */
+
+    section.content-section {
+      padding: 75px 0;
+    }
+
+    .section-heading {
+      text-align: center;
+      margin-bottom: 35px;
+    }
+
+    .section-heading small {
+      color: #c4b5fd;
+      font-weight: 800;
+      letter-spacing: 1px;
+    }
+
+    .section-heading h2 {
+      font-size: clamp(27px, 4vw, 39px);
+      font-weight: 900;
+      margin: 5px 0;
+    }
+
+    .section-heading p {
+      color: var(--muted);
+      font-size: 14px;
+    }
+
+    .cards {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 20px;
+    }
+
+    .card {
+      background: linear-gradient(145deg, #151520, #101018);
+      border: 1px solid var(--border);
+      border-radius: 19px;
+      padding: 25px;
+      transition: .25s;
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+    }
+
+    .card:hover {
+      transform: translateY(-5px);
+      border-color: rgba(167,139,250,.55);
+    }
+
+    .icon-box {
+      width: 53px;
+      height: 53px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 14px;
+      background: rgba(139,92,246,.15);
+      color: #c4b5fd;
+      font-size: 22px;
+      margin-bottom: 17px;
+    }
+
+    .card h3 {
+      font-size: 20px;
+      font-weight: 900;
+      margin-bottom: 8px;
+    }
+
+    .card p {
+      color: var(--muted);
+      font-size: 13px;
+      margin-bottom: 22px;
+      flex: 1;
+    }
+
+    .card .btn {
+      width: 100%;
+      font-size: 13px;
+      margin-top: auto;
+    }
+
+    /* المتجر */
+
+    .store-card {
+      background:
+        radial-gradient(ellipse at top left, rgba(236,72,153,.13), transparent 70%),
+        linear-gradient(145deg, #171421, #101018);
+    }
+
+    .store-card .icon-box {
+      background: rgba(236,72,153,.13);
+      color: #f9a8d4;
+    }
+
+    /* الحسابات */
+
+    .socials {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 16px;
+    }
+
+    .social {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      background: var(--card);
+      border: 1px solid var(--border);
+      padding: 19px;
+      border-radius: 15px;
+      transition: .25s;
+    }
+
+    .social:hover {
+      transform: translateY(-4px);
+      border-color: var(--purple);
+    }
+
+    .social-icon {
+      width: 46px;
+      height: 46px;
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: rgba(139,92,246,.13);
+      border-radius: 12px;
+      font-size: 22px;
+    }
+
+    .social h3 {
+      font-size: 15px;
+    }
+
+    .social p {
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    /* من نحن */
+
+    .about {
+      text-align: center;
+      background: linear-gradient(120deg, rgba(139,92,246,.09), rgba(236,72,153,.06));
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 35px 24px;
+    }
+
+    .about p {
+      max-width: 700px;
+      margin: 12px auto 0;
+      color: var(--muted);
+      font-size: 14px;
+    }
+
+    footer {
+      border-top: 1px solid var(--border);
+      text-align: center;
+      padding: 25px 0;
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    footer .logo {
+      display: inline-block;
+      margin-bottom: 5px;
+    }
+
+    /* تصميم الهاتف */
+
+    @media (max-width: 800px) {
+      .cards {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+
+      .socials {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+
+      .nav-links {
+        gap: 12px;
+      }
+    }
+
+    @media (max-width: 600px) {
+      .menu-btn {
+        display: block;
+      }
+
+      .nav {
+        min-height: 67px;
+      }
+
+      .nav-links {
+        display: none;
+        position: absolute;
+        top: 67px;
+        right: 0;
+        left: 0;
+        background: #0d0d15;
+        border-bottom: 1px solid var(--border);
+        padding: 12px 5%;
+        flex-direction: column;
+        align-items: stretch;
+        gap: 0;
+      }
+
+      .nav-links.active {
+        display: flex;
+      }
+
+      .nav-links a {
+        padding: 10px 5px;
+        border-bottom: 1px solid var(--border);
+      }
+
+      .hero {
+        min-height: auto;
+        padding: 70px 0 50px;
+      }
+
+      .hero p {
+        font-size: 14px;
+      }
+
+      .stats {
+        gap: 7px;
+        margin-top: 32px;
+      }
+
+      .stat h3 {
+        font-size: 18px;
+      }
+
+      .stat p {
+        font-size: 10px;
+      }
+
+      section.content-section {
+        padding: 55px 0;
+      }
+
+      .cards,
+      .socials {
+        grid-template-columns: 1fr;
+      }
+
+      .card {
+        padding: 22px;
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+  <header>
+    <div class="container nav">
+      <a href="#home" class="logo">ALOSHIQ</a>
+
+      <button class="menu-btn" id="menuBtn"
+              aria-label="فتح القائمة" aria-expanded="false">
+        <i class="fa-solid fa-bars"></i>
+      </button>
+
+      <nav class="nav-links" id="navLinks">
+        <a href="#home">الرئيسية</a>
+        <a href="#downloads">التحميلات</a>
+        <a href="#store">المتجر</a>
+        <a href="#socials">حساباتنا</a>
+        <a href="#about">من نحن</a>
+      </nav>
+    </div>
+  </header>
+
+  <main>
+
+    <!-- الواجهة الرئيسية -->
+    <section class="hero" id="home">
+      <div class="container hero-content">
+
+        <div class="badge">
+          <i class="fa-solid fa-bolt"></i>
+          أهلاً بك في ALOSHIQ
+        </div>
+
+        <h1>
+          عالمك يبدأ <span class="gradient">من هنا.</span>
+        </h1>
+
+        <p>
+          وجهتك لاكتشاف مودات ماين كرافت وحزم الموارد والمودباكات.
+          كلشي تحتاجه لتطوير تجربتك باللعبة بمكان واحد.
+        </p>
+
+        <div class="buttons">
+          <a href="#downloads" class="btn primary">
+            <i class="fa-solid fa-download"></i>
+            استكشف التحميلات
+          </a>
+
+          <a href="https://discord.gg/qazmRhSj7m"
+             target="_blank" rel="noopener noreferrer"
+             class="btn secondary">
+            <i class="fa-brands fa-discord"></i>
+            مجتمعنا
+          </a>
+        </div>
+
+        <div class="stats">
+          <div class="stat">
+            <h3>MODS</h3>
+            <p>مودات</p>
+          </div>
+
+          <div class="stat">
+            <h3>PACKS</h3>
+            <p>حزم موارد ومودباكات</p>
+          </div>
+
+          <div class="stat">
+            <h3>COMMUNITY</h3>
+            <p>مجتمعنا</p>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- التحميلات: كل قسم مرة واحدة -->
+    <section class="content-section" id="downloads">
+      <div class="container">
+
+        <div class="section-heading">
+          <small>DOWNLOAD CENTER</small>
+          <h2>مركز <span class="gradient">التحميلات</span></h2>
+          <p>اختار القسم اللي تريده وابدأ باستكشاف المحتوى.</p>
+        </div>
+
+        <div class="cards">
+
+          <!-- المودات -->
+          <article class="card">
+            <div class="icon-box">
+              <i class="fa-solid fa-cubes"></i>
+            </div>
+
+            <h3>Mods</h3>
+
+            <p>
+              اكتشف مودات ماين كرافت وأضف ميزات وأفكار جديدة إلى لعبتك.
+              تصفح المودات وابحث حسب احتياجك.
+            </p>
+
+            <a href="mods.html" class="btn primary">
+              <i class="fa-solid fa-download"></i>
+              تصفح المودات
+            </a>
+          </article>
+
+          <!-- الريسورس باك -->
+          <article class="card">
+            <div class="icon-box">
+              <i class="fa-solid fa-palette"></i>
+            </div>
+
+            <h3>Resource Packs</h3>
+
+            <p>
+              غيّر مظهر ماين كرافت باستخدام حزم الموارد،
+              واكتشف خامات وتصاميم مختلفة تناسب ذوقك.
+            </p>
+
+            <a href="resources.html" class="btn primary">
+              <i class="fa-solid fa-download"></i>
+              تصفح الموارد
+            </a>
+          </article>
+
+          <!-- المودباكات -->
+          <article class="card">
+            <div class="icon-box">
+              <i class="fa-solid fa-box-open"></i>
+            </div>
+
+            <h3>Modpacks</h3>
+
+            <p>
+              استكشف مجموعات مودات جاهزة تجمع محتويات متعددة
+              حتى تعيش تجربة لعب مختلفة.
+            </p>
+
+            <a href="modpacks.html" class="btn primary">
+              <i class="fa-solid fa-download"></i>
+              تصفح المودباكات
+            </a>
+          </article>
+
+        </div>
+      </div>
+    </section>
+
+    <!-- المتجر: مرة واحدة -->
+    <section class="content-section" id="store">
+      <div class="container">
+
+        <div class="section-heading">
+          <small>OUR STORE</small>
+          <h2>متجر <span class="gradient">Cyber Store</span></h2>
+          <p>تعرّف على المتجر من خلال موقعه الرسمي.</p>
+        </div>
+
+        <div class="cards">
+          <article class="card store-card">
+
+            <div class="icon-box">
+              <i class="fa-solid fa-store"></i>
+            </div>
+
+            <h3>Cyber Store</h3>
+
+            <p>
+              زور Cyber Store واكتشف المنتجات والخدمات المعروضة
+              على موقعه الرسمي، وتعرّف على تفاصيلها قبل الاختيار.
+            </p>
+
+            <a href="https://cstoree.com/"
+               target="_blank"
+               rel="noopener noreferrer"
+               class="btn primary">
+              <i class="fa-solid fa-arrow-up-right-from-square"></i>
+              زيارة Cyber Store
+            </a>
+
+          </article>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- الحسابات الاجتماعية -->
+    <section class="content-section" id="socials">
+      <div class="container">
+
+        <div class="section-heading">
+          <small>FOLLOW US</small>
+          <h2>حسابات <span class="gradient">ALOSHIQ</span></h2>
+          <p>تابعنا على منصات التواصل الاجتماعي.</p>
+        </div>
+
+        <div class="socials">
+
+          <a class="social"
+             href="https://discord.gg/qazmRhSj7m"
+             target="_blank" rel="noopener noreferrer">
+            <div class="social-icon">
+              <i class="fa-brands fa-discord"></i>
+            </div>
+            <div>
+              <h3>Discord</h3>
+              <p>انضم إلى مجتمعنا</p>
+            </div>
+          </a>
+
+          <a class="social"
+             href="https://www.instagram.com/g1a1q/"
+             target="_blank" rel="noopener noreferrer">
+            <div class="social-icon">
+              <i class="fa-brands fa-instagram"></i>
+            </div>
+            <div>
+              <h3>Instagram</h3>
+              <p>تابع حسابنا</p>
+            </div>
+          </a>
+
+          <a class="social"
+             href="https://www.tiktok.com/@g1a0q"
+             target="_blank" rel="noopener noreferrer">
+            <div class="social-icon">
+              <i class="fa-brands fa-tiktok"></i>
+            </div>
+            <div>
+              <h3>TikTok</h3>
+              <p>شاهد محتوياتنا</p>
+            </div>
+          </a>
+
+        </div>
+      </div>
+    </section>
+
+    <!-- من نحن -->
+    <section class="content-section" id="about">
+      <div class="container">
+
+        <div class="about">
+          <div class="icon-box" style="margin: 0 auto 15px;">
+            <i class="fa-solid fa-rocket"></i>
+          </div>
+
+          <h2>من نحن؟</h2>
+
+          <p>
+            ALOSHIQ موقع لعشاق ماين كرافت، يسهّل عليك الوصول
+            إلى صفحات المودات وحزم الموارد والمودباكات،
+            بتصميم بسيط يساعدك تتنقل بين الأقسام بسهولة.
+          </p>
+        </div>
+
+      </div>
+    </section>
+
+  </main>
+
+  <footer>
+    <div class="container">
+      <a href="#home" class="logo">ALOSHIQ</a>
+      <p>جميع الحقوق محفوظة © <span id="year"></span> ALOSHIQ</p>
+    </div>
+  </footer>
+
+  <script>
+    const menuBtn = document.getElementById("menuBtn");
+    const navLinks = document.getElementById("navLinks");
+
+    menuBtn.addEventListener("click", function () {
+      const opened = navLinks.classList.toggle("active");
+
+      menuBtn.setAttribute("aria-expanded", String(opened));
+
+      menuBtn.innerHTML = opened
+        ? '<i class="fa-solid fa-xmark"></i>'
+        : '<i class="fa-solid fa-bars"></i>';
+    });
+
+    document.querySelectorAll("#navLinks a").forEach(function (link) {
+      link.addEventListener("click", function () {
+        navLinks.classList.remove("active");
+        menuBtn.setAttribute("aria-expanded", "false");
+        menuBtn.innerHTML = '<i class="fa-solid fa-bars"></i>';
+      });
+    });
+
+    document.getElementById("year").textContent =
+      new Date().getFullYear();
+  </script>
+
+</body>
+</html>

@@ -1,0 +1,347 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ALOSHIQ | Mods</title>
+<style>
+*{box-sizing:border-box}
+body{margin:0;background:#080808;color:#f5f5f5;font-family:Arial,sans-serif}
+header{padding:17px 5%;border-bottom:1px solid #292929;display:flex;justify-content:space-between;align-items:center}
+.logo{font-size:25px;font-weight:bold;color:white;text-decoration:none}
+.logo span{color:#999}
+.back{color:#ccc;text-decoration:none}
+main{max-width:1250px;margin:auto;padding:30px 5%}
+h1{font-size:36px;margin-bottom:5px}
+.muted{color:#999;line-height:1.7}
+.controls{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;margin:24px 0}
+input,select{width:100%;padding:13px;background:#121212;color:white;border:1px solid #353535;border-radius:9px;font-size:15px;min-width:0}
+.tabs{display:flex;gap:10px;flex-wrap:wrap;margin:22px 0}
+.tab,.more{padding:12px 17px;background:#171717;border:1px solid #383838;border-radius:9px;color:#ccc;font-weight:bold;cursor:pointer}
+.tab.active{background:white;color:black}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(225px,1fr));gap:15px;margin-top:20px}
+.card{background:#111;border:1px solid #292929;border-radius:13px;padding:16px;min-width:0}
+.card img{width:64px;height:64px;object-fit:cover;border-radius:12px;background:#222}
+.card h3{font-size:18px;overflow-wrap:anywhere;margin-bottom:8px}
+.card p{font-size:13px;color:#aaa;line-height:1.6}
+.meta{font-size:12px;color:#888;margin:10px 0}
+.download{width:100%;display:block;text-align:center;margin-top:12px;padding:11px;background:#fff;color:#000;border:0;border-radius:8px;font-weight:bold;cursor:pointer;text-decoration:none}
+.download:disabled{opacity:.5;cursor:wait}
+.status{color:#aaa;margin:18px 0}
+.center{text-align:center;margin:25px 0}
+.more{display:none}
+.more.show{display:inline-block}
+.small{font-size:12px;color:#888}
+</style>
+</head>
+
+<body>
+<header>
+<a class="logo" href="index.html">ALO<span>SHIQ</span></a>
+<a class="back" href="index.html">← Home</a>
+</header>
+
+<main>
+<h1>Minecraft Mods</h1>
+<p class="muted">
+Find Minecraft mods, choose your game version and mod loader,
+then download a compatible file directly.
+</p>
+
+<div class="tabs">
+<button class="tab active" data-mode="all">ALL MODS</button>
+<button class="tab" data-mode="al">ALOSHIQ MODS</button>
+</div>
+
+<div class="controls">
+<input id="search" type="search" placeholder="Search mods...">
+
+<select id="mcVersion">
+<option value="">Loading versions...</option>
+</select>
+
+<select id="loader">
+<option value="">All Loaders</option>
+<option value="fabric">Fabric</option>
+<option value="forge">Forge</option>
+<option value="neoforge">NeoForge</option>
+<option value="quilt">Quilt</option>
+</select>
+
+<select id="sort">
+<option value="downloads">Most downloaded</option>
+<option value="relevance">Most relevant</option>
+<option value="newest">Newest</option>
+<option value="updated">Recently updated</option>
+</select>
+</div>
+
+<p class="status" id="status">Loading mods...</p>
+<div class="grid" id="results"></div>
+
+<div class="center">
+<button class="more" id="more">LOAD MORE MODS</button>
+</div>
+
+<p class="small">
+Mod compatibility depends on the selected Minecraft version and loader.
+</p>
+</main>
+
+<script>
+const API = "https://api.modrinth.com/v2";
+const results = document.getElementById("results");
+const statusText = document.getElementById("status");
+const searchInput = document.getElementById("search");
+const versionSelect = document.getElementById("mcVersion");
+const loaderSelect = document.getElementById("loader");
+const sortSelect = document.getElementById("sort");
+const moreButton = document.getElementById("more");
+
+let mode = "all";
+let offset = 0;
+const limit = 30;
+let totalHits = 0;
+let requestId = 0;
+let timer = null;
+
+function addOption(select, value, label) {
+  const option = document.createElement("option");
+  option.value = value;
+  option.textContent = label;
+  select.appendChild(option);
+}
+
+async function loadGameVersions() {
+  try {
+    const response = await fetch(API + "/tag/game_version");
+    if (!response.ok) throw new Error("Versions unavailable");
+
+    const versions = await response.json();
+    versionSelect.replaceChildren();
+    addOption(versionSelect, "", "All Minecraft Versions");
+
+    versions
+      .filter(v => v.version_type === "release")
+      .forEach(v => addOption(versionSelect, v.version, v.version));
+
+    const preferred = versions.find(v => v.version === "1.21.11");
+    if (preferred) versionSelect.value = preferred.version;
+  } catch (error) {
+    versionSelect.replaceChildren();
+    addOption(versionSelect, "", "All Versions (fallback)");
+    [
+      "1.21.11","1.21.10","1.21.9","1.21.8",
+      "1.21.7","1.21.6","1.21.5","1.21.4",
+      "1.21.3","1.21.1","1.20.6","1.20.4",
+      "1.20.1","1.19.4","1.18.2","1.16.5"
+    ].forEach(v => addOption(versionSelect, v, v));
+  }
+
+  loadMods(true);
+}
+
+function makeSearchURL() {
+  const params = new URLSearchParams();
+  params.set("limit", String(limit));
+  params.set("offset", String(offset));
+  params.set("index", sortSelect.value);
+
+  const facets = [["project_type:mod"]];
+  const selectedVersion = versionSelect.value;
+  const selectedLoader = loaderSelect.value;
+
+  if (selectedVersion) {
+    facets.push(["versions:" + selectedVersion]);
+  }
+
+  if (selectedLoader) {
+    facets.push(["categories:" + selectedLoader]);
+  }
+
+  params.set("facets", JSON.stringify(facets));
+
+  const query = searchInput.value.trim();
+  if (query) params.set("query", query);
+
+  return API + "/search?" + params.toString();
+}
+
+function createCard(item) {
+  const card = document.createElement("article");
+  card.className = "card";
+
+  if (item.icon_url) {
+    const image = document.createElement("img");
+    image.src = item.icon_url;
+    image.alt = "";
+    image.loading = "lazy";
+    image.onerror = () => image.remove();
+    card.appendChild(image);
+  }
+
+  const title = document.createElement("h3");
+  title.textContent = item.title || "Minecraft Mod";
+
+  const description = document.createElement("p");
+  description.textContent = item.description || "Minecraft mod.";
+
+  const meta = document.createElement("div");
+  meta.className = "meta";
+  meta.textContent =
+    "Downloads: " + Number(item.downloads || 0).toLocaleString();
+
+  const button = document.createElement("button");
+  button.className = "download";
+  button.textContent = "DOWNLOAD MOD";
+
+  button.addEventListener("click", async () => {
+    if (!item.project_id) return;
+
+    button.disabled = true;
+    button.textContent = "Finding compatible file...";
+
+    try {
+      const params = new URLSearchParams();
+      const selectedVersion = versionSelect.value;
+      const selectedLoader = loaderSelect.value;
+
+      if (selectedVersion) {
+        params.set("game_versions", JSON.stringify([selectedVersion]));
+      }
+
+      if (selectedLoader) {
+        params.set("loaders", JSON.stringify([selectedLoader]));
+      }
+
+      params.set("include_changelog", "false");
+
+      const url = API + "/project/" +
+        encodeURIComponent(item.project_id) +
+        "/version?" + params.toString();
+
+      const response = await fetch(url);
+      if (!response.ok) throw new Error("Version lookup failed");
+
+      const versions = await response.json();
+
+      const compatible = versions
+        .filter(v => v.status === "listed" && v.files && v.files.length)
+        .sort((a, b) =>
+          new Date(b.date_published) - new Date(a.date_published)
+        );
+
+      if (!compatible.length) {
+        throw new Error("No compatible file");
+      }
+
+      const version = compatible[0];
+      const file = version.files.find(f => f.primary) || version.files[0];
+
+      if (!file || !file.url) throw new Error("File unavailable");
+
+      button.textContent = "Starting download...";
+
+      const link = document.createElement("a");
+      link.href = file.url;
+      link.download = file.filename || "";
+      link.rel = "noopener noreferrer";
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+
+      button.textContent = "DOWNLOAD AGAIN";
+    } catch (error) {
+      button.textContent = "No compatible file — try another version";
+    } finally {
+      button.disabled = false;
+    }
+  });
+
+  card.append(title, description, meta, button);
+  return card;
+}
+
+async function loadMods(reset = false) {
+  if (mode === "al") {
+    requestId++;
+    results.replaceChildren();
+    moreButton.classList.remove("show");
+    statusText.textContent =
+      "ALOSHIQ MODS: add your own published mod details to this section.";
+    return;
+  }
+
+  if (reset) {
+    offset = 0;
+    totalHits = 0;
+    results.replaceChildren();
+  }
+
+  const currentRequest = ++requestId;
+  statusText.textContent = "Loading mods...";
+  moreButton.disabled = true;
+  moreButton.classList.remove("show");
+
+  try {
+    const response = await fetch(makeSearchURL());
+    if (!response.ok) throw new Error("Search failed");
+
+    const data = await response.json();
+
+    if (currentRequest !== requestId) return;
+
+    totalHits = data.total_hits || 0;
+    const items = data.hits || [];
+
+    items.forEach(item => results.appendChild(createCard(item)));
+
+    offset += items.length;
+
+    if (offset < totalHits && items.length > 0) {
+      moreButton.classList.add("show");
+    }
+
+    statusText.textContent =
+      "Showing " + offset.toLocaleString() + " of " +
+      totalHits.toLocaleString() + " mods.";
+
+    if (offset === 0) statusText.textContent = "No mods found.";
+  } catch (error) {
+    if (currentRequest !== requestId) return;
+
+    statusText.textContent =
+      "Could not load mods. Check your internet and try again.";
+  } finally {
+    moreButton.disabled = false;
+  }
+}
+
+document.querySelectorAll(".tab").forEach(button => {
+  button.addEventListener("click", () => {
+    document.querySelectorAll(".tab").forEach(b =>
+      b.classList.remove("active")
+    );
+
+    button.classList.add("active");
+    mode = button.dataset.mode;
+    loadMods(true);
+  });
+});
+
+[versionSelect, loaderSelect, sortSelect].forEach(select => {
+  select.addEventListener("change", () => loadMods(true));
+});
+
+searchInput.addEventListener("input", () => {
+  clearTimeout(timer);
+  timer = setTimeout(() => loadMods(true), 450);
+});
+
+moreButton.addEventListener("click", () => loadMods(false));
+
+loadGameVersions();
+</script>
+</body>
+</html>
